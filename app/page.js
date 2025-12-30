@@ -77,11 +77,11 @@ export default function Home() {
   const [totalCourses, setTotalCourses] = useState(0);
   const [limitReached, setLimitReached] = useState(false);
 
-  // Date range (today to 1 month later by default)
+  // Date range (today to 15 days later by default)
   const today = new Date().toISOString().split('T')[0];
-  const oneMonthLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const fifteenDaysLater = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(oneMonthLater);
+  const [endDate, setEndDate] = useState(fifteenDaysLater);
 
   // Get current location using browser geolocation
   const getCurrentLocation = useCallback(() => {
