@@ -1,4 +1,4 @@
-# 🧘 Vipassana Course Finder
+# Vipassana Course Finder
 
 Find Vipassana meditation courses near you in India with real-time data from dhamma.org.
 
