@@ -34,23 +34,16 @@ Open http://localhost:3000
 
 ## 🏗️ How It Works
 
-1. Enter your location → App geocodes to lat/lng
-2. Fetches all 139 Indian Vipassana centers from dhamma.org
-3. Calculates distance to each center
-4. Shows centers within your radius
-5. Fetches courses for your date range
-6. Displays centers with their available courses
+1. **User sets location** → Browser geolocation or manual address input (geocoded via Nominatim)
+2. **Fetches Indian centers + coordinates** → From dhamma.org (`/en-US/maps` position data + search location data)
+3. **Calculates distances** → Haversine formula
+4. **Fetches courses** → `POST /en-US/courses/do_search` (India: `region_118`)
+5. **Filters + displays** → Centers within radius, sorted by distance, with their courses
 
-## 📊 Tech Stack
-
-- **Frontend**: Next.js 14, React, Tailwind CSS
-- **Data Source**: dhamma.org API (real-time)
-- **Geocoding**: Nominatim (OpenStreetMap)
-- **Distance**: Haversine formula
 
 ## 📝 Notes
 
-- India-focused (currently supports 139 Indian centers)
+- India-focused
 - Max 100 courses per query (dhamma.org API limit)
 - Distances are air distance, not road distance
 - All data fetched real-time (no database)
