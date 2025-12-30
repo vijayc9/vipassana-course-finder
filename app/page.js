@@ -75,6 +75,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [totalCenters, setTotalCenters] = useState(0);
   const [totalCourses, setTotalCourses] = useState(0);
+  const [limitReached, setLimitReached] = useState(false);
 
   // Date range (today to 1 month later by default)
   const today = new Date().toISOString().split('T')[0];
@@ -190,9 +191,11 @@ export default function Home() {
         setCenters(data.centers || []);
         setTotalCenters(data.totalCenters || 0);
         setTotalCourses(data.totalCourses || 0);
+        setLimitReached(data.limitReached || false);
       } else {
         setError(data.error || 'Failed to fetch centers');
         setCenters([]);
+        setLimitReached(false);
       }
     } catch (err) {
       setError('Network error. Please try again.');
@@ -336,9 +339,9 @@ export default function Home() {
           </div>
 
           {/* Main Filters Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="flex flex-wrap gap-4 mb-4 items-end">
             {/* Date Range */}
-            <div>
+            <div className="flex-shrink-0 w-48">
               <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
               <input
                 type="date"
@@ -347,7 +350,7 @@ export default function Home() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1e4d8c] focus:border-[#1e4d8c] bg-white"
               />
             </div>
-            <div>
+            <div className="flex-shrink-0 w-48">
               <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
               <input
                 type="date"
@@ -357,14 +360,29 @@ export default function Home() {
               />
             </div>
 
-            {/* Filter Settings Button */}
-            <div>
+            {/* Spacer */}
+            <div className="flex-shrink-0 w-24"></div>
+
+            {/* Course Type Filter */}
+            <div className="ml-auto flex-1 min-w-[280px] max-w-md">
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+                Select Course Type
+                <div className="relative group">
+                  <div className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold cursor-help">
+                    ?
+                  </div>
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-72 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl z-50">
+                    💡 For longer date ranges, filter by specific course types (dhamma.org limits to 100 results per query)
+                    <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              </label>
               <button
                 onClick={() => setShowFilterModal(true)}
                 className="w-full px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:border-[#1e4d8c] hover:text-[#1e4d8c] transition-colors flex items-center justify-between"
               >
                 <span className="text-sm font-medium">
-                  {selectedCourseTypes.length === 0 ? 'Select Course Type' : `${selectedCourseTypes.length} course type(s) selected`}
+                  {selectedCourseTypes.length === 0 ? 'All Types' : `${selectedCourseTypes.length} selected`}
                 </span>
                 <span className="text-gray-400">▼</span>
               </button>
@@ -513,50 +531,97 @@ export default function Home() {
           </div>
         )}
 
+        {/* Limit Warning */}
+        {!isLoading && limitReached && (
+          <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 flex items-start gap-3">
+            <span className="text-amber-600 text-xl">⚠️</span>
+            <p className="text-sm text-amber-800">
+              <strong>Results may be incomplete</strong> — Maximum limit was reached, so only courses from the start of your date range are shown. Courses toward the end of your selected dates may be missing. Try a shorter date range or filter by specific course types to see all results.
+            </p>
+          </div>
+        )}
+
         {/* Center Cards with Courses */}
         {!isLoading && processedCenters.length > 0 && (
-          <div className="space-y-6">
+          <div className="divide-y divide-[#c9a227]">
             {processedCenters.map((center) => {
               const centerWebsiteUrl = `https://${center.subdomain}.dhamma.org`;
               const centerScheduleUrl = `https://www.dhamma.org/en-US/schedules/sch${center.subdomain}`;
+              const centerMapUrl = center.center_coords 
+                ? `https://www.google.com/maps/dir/Current+Location/${center.center_coords.lat},${center.center_coords.lng}`
+                : null;
+              
+              // Get header image from first course's location data (already absolute URL from API)
+              const imageUrl = center.courses[0]?.location?.header_image_path || null;
               
               return (
                 <div
                   key={center.subdomain}
-                  className="bg-white rounded-lg shadow-md border-2 border-gray-300 overflow-hidden"
+                  className="bg-white py-6 hover:bg-[#f8f6f0] transition-colors"
                 >
-                  {/* Center Header */}
-                  <div className="bg-gradient-to-r from-[#1e4d8c] to-[#2a6bb7] text-white p-5">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                      <div>
-                        <h3 className="text-2xl font-bold mb-1">{center.name}</h3>
-                        <div className="flex items-center gap-2">
-                          <span className="text-white/90">📍 {center.city}, {center.state}, India</span>
+                  {/* Center Header with Image */}
+                  <div className="flex flex-col sm:flex-row">
+                    {/* Center Image */}
+                    <div className="w-full sm:w-48 h-36 bg-gradient-to-br from-[#e8f4ea] to-[#d4e8f0] flex-shrink-0 flex items-center justify-center overflow-hidden">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={center.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML = '<span class="text-5xl opacity-40">🏛️</span>';
+                          }}
+                        />
+                      ) : (
+                        <span className="text-5xl opacity-40">🏛️</span>
+                      )}
+                    </div>
+
+                    {/* Center Info */}
+                    <div className="flex-1 p-4 flex flex-col sm:flex-row justify-between gap-3">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-[#1e4d8c] mb-2">
+                          {center.name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-gray-600 text-sm mb-2">
+                          <IndiaFlag />
+                          <span>{center.city}, {center.state}, India</span>
                         </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        {center.distance_km !== null && (
-                          <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
-                            <span className="text-2xl font-bold">{Math.round(center.distance_km)}</span>
-                            <span className="text-sm ml-1">km away</span>
-                          </div>
-                        )}
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 text-sm">
                           <a href={centerScheduleUrl} target="_blank" rel="noopener noreferrer" 
-                            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-3 py-1 rounded text-sm transition-colors">
-                            📅 Schedule
+                            className="text-[#1e4d8c] hover:underline">
+                            📅 Courses
                           </a>
+                          <span className="text-gray-300">|</span>
                           <a href={centerWebsiteUrl} target="_blank" rel="noopener noreferrer" 
-                            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-3 py-1 rounded text-sm transition-colors">
+                            className="text-[#1e4d8c] hover:underline">
                             🏠 Website
                           </a>
+                          {centerMapUrl && (
+                            <>
+                              <span className="text-gray-300">|</span>
+                              <a href={centerMapUrl} target="_blank" rel="noopener noreferrer" 
+                                className="text-[#1e4d8c] hover:underline">
+                                📍 Directions
+                              </a>
+                            </>
+                          )}
                         </div>
                       </div>
+                      {center.distance_km !== null && (
+                        <div className="flex-shrink-0">
+                          <div className="bg-green-50 border border-green-200 px-3 py-2 rounded-lg text-center">
+                            <div className="text-2xl font-bold text-green-700">{Math.round(center.distance_km)}</div>
+                            <div className="text-xs text-green-600">km</div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Courses List */}
-                  <div className="p-5">
+                  <div className="px-4 pt-4">
                     {center.courses.length === 0 ? (
                       <div className="text-center py-8 text-gray-500">
                         <p className="text-4xl mb-2">📅</p>
@@ -564,52 +629,73 @@ export default function Home() {
                         <p className="text-sm">in the selected date range</p>
                       </div>
                     ) : (
-                      <div className="space-y-3">
+                      <div>
                         {center.courses.map((course) => {
-                          const status = getStatusBadge(course.availability, course.status_raw);
                           const loc = course.location || {};
                           
                           return (
-                            <div key={course.id} className="border border-gray-200 rounded-lg p-4 hover:border-[#1e4d8c] transition-colors">
-                              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                                <div className="flex-1">
-                                  <div className="flex flex-wrap items-center gap-3 mb-2">
-                                    <a
-                                      href={course.app_page_url || course.apply_url || '#'}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className={`inline-block px-4 py-1.5 rounded font-semibold text-white text-sm transition-colors ${course.can_apply_flag
-                                        ? 'bg-[#4a90c2] hover:bg-[#3a7db0]'
-                                        : 'bg-gray-400 cursor-not-allowed'
-                                        }`}
-                                    >
-                                      Apply{!course.can_apply_flag && '*'}
-                                    </a>
-                                    <span className="font-bold text-[#1e4d8c]">
-                                      {course.localized_start_date} - {course.localized_end_date}
-                                    </span>
-                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${status.bg} ${status.text} border ${status.border}`}>
-                                      {status.label}
-                                    </span>
-                                  </div>
-                                  <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
-                                    <span className="font-medium text-[#1e4d8c]">{course.course_type}</span>
-                                    {course.course_instruction_languages?.length > 0 && (
-                                      <>
-                                        <span>•</span>
-                                        <span>{course.course_instruction_languages.join(' / ')}</span>
-                                      </>
-                                    )}
-                                  </div>
-                                  {course.comments && (
-                                    <p className="text-xs text-gray-500 italic mt-2"
-                                      dangerouslySetInnerHTML={{
-                                        __html: `<strong>Comments:</strong> ${course.comments.replace(/<a /g, '<a class="text-blue-600 hover:underline" target="_blank" ')}`
-                                      }}
-                                    />
-                                  )}
-                                </div>
+                            <div key={course.id} className="py-4 border-b border-gray-200 last:border-b-0">
+                              <div className="flex flex-wrap items-center gap-3 mb-3">
+                                <a
+                                  href={course.app_page_url || course.apply_url || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`inline-block px-5 py-2 rounded font-semibold text-white text-sm ${course.can_apply_flag
+                                    ? 'bg-[#4a90c2] hover:bg-[#3a7db0]'
+                                    : 'bg-gray-400 cursor-not-allowed'
+                                    }`}
+                                >
+                                  Apply{!course.can_apply_flag && '*'}
+                                </a>
+                                <span className="text-lg font-bold text-[#1e4d8c]">
+                                  {course.localized_start_date} - {course.localized_end_date}
+                                </span>
                               </div>
+                              
+                              <div className="mb-3">
+                                <span className="text-[#1e4d8c] font-medium">
+                                  {course.course_type}
+                                </span>
+                                {course.course_instruction_languages?.length > 0 && (
+                                  <span className="text-gray-600 ml-2">
+                                    {course.course_instruction_languages.join(' / ')}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Status Badges - gender-specific like dhamma.org */}
+                              {course.status_raw && course.status_raw.length > 0 && (
+                                <div className="space-y-1">
+                                  {course.status_raw.map((s, idx) => {
+                                    const label = s?.label || '';
+                                    const statusText = s?.status || '';
+                                    const color = s?.color?.toLowerCase() || '';
+                                    const isGreen = color === 'green';
+                                    const isRed = color === 'red';
+                                    const displayText = label ? `${label} - ${statusText}` : statusText;
+                                    
+                                    return (
+                                      <div key={idx} className="flex items-center gap-2 text-sm">
+                                        <div className={`w-3 h-3 flex-shrink-0 ${
+                                          isGreen ? 'bg-green-600' : isRed ? 'bg-red-600' : 'bg-yellow-500'
+                                        }`}></div>
+                                        <span className={`font-medium ${
+                                          isGreen ? 'text-green-700' : isRed ? 'text-red-700' : 'text-yellow-700'
+                                        }`}>
+                                          {displayText}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+
+                              {course.comments && (
+                                <div className="mt-3 text-sm text-gray-600 italic">
+                                  <strong className="text-gray-700 not-italic">Comments:</strong>{' '}
+                                  {course.comments.replace(/<[^>]*>/g, '')}
+                                </div>
+                              )}
                             </div>
                           );
                         })}

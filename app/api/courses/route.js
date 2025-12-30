@@ -120,6 +120,7 @@ export async function GET(request) {
       centers: centersWithinRadius,
       totalCenters: centersWithinRadius.length,
       totalCourses: indiaCourses.length,
+      limitReached: allCourses.length >= 100,
       fetchedAt: new Date().toISOString(),
       source: 'dhamma.org',
     });
