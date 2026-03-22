@@ -2,6 +2,10 @@
 
 Find Vipassana meditation courses near you in India with real-time data from dhamma.org.
 
+**Live app:** [vipassana-course-finder.vercel.app](https://vipassana-course-finder.vercel.app/)
+
+![Vipassana Course Finder — course search UI](img/Screenshot%202026-03-22%20at%208.07.28%E2%80%AFAM.png)
+
 ## 🎯 Why This App?
 
 **The Problem:**  
@@ -22,15 +26,6 @@ This app shows **all Vipassana centers within your chosen radius** with their av
 - 🎯 **All centers shown** - Even centers with no scheduled courses (so you know they exist)
 - 🔗 **Direct apply links** - One click to dhamma.org application forms
 - 🏷️ **Course type filters** - Filter by 10-Day, 20-Day, Satipatthana, etc.
-
-## 🚀 Quick Start
-
-```bash
-npm install
-npm run dev
-```
-
-Open http://localhost:3000
 
 ## 🏗️ How It Works
 
