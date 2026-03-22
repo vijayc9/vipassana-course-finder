@@ -1,10 +1,11 @@
 # Vipassana Course Finder
 
-Find Vipassana meditation courses near you in India with real-time data from dhamma.org.
+Find Vipassana courses near you in India with real-time data from dhamma.org.
 
 **Live app:** [vipassana-course-finder.vercel.app](https://vipassana-course-finder.vercel.app/)
-
+<!--
 ![Vipassana Course Finder — course search UI](img/Screenshot%202026-03-22%20at%208.07.28%E2%80%AFAM.png)
+-->
 
 ## 🎯 Why This App?
 
