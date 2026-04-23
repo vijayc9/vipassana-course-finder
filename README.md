@@ -10,9 +10,10 @@ Find Vipassana courses near you in India with real-time data from dhamma.org.
 ## 🎯 Why This App?
 
 **The Problem:**  
-You want to attend a Vipassana course near Bangalore (or any city). You have to:
-- Visit 10+ individual center websites to check their schedules
-- Manually calculate which centers are closest to you
+You want to attend a Vipassana course near you (or any place). You have to:
+- Manually search what all centers exist near you
+- Calculate which centers are closest to you
+- Visit multiple individual center websites to check their schedules
 - Keep checking back for new course openings
 - Miss courses at nearby centers you didn't know existed
 
